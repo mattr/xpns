@@ -61,3 +61,39 @@ func (q *Queries) CreateDebit(ctx context.Context, arg CreateDebitParams) (Trans
 	)
 	return i, err
 }
+
+const getAllTransactions = `-- name: GetAllTransactions :many
+select id, created_at, updated_at, transaction_type, transacted_on, amount_cents
+from transactions
+order by transacted_on desc, created_at desc
+`
+
+func (q *Queries) GetAllTransactions(ctx context.Context) ([]Transaction, error) {
+	rows, err := q.db.QueryContext(ctx, getAllTransactions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transaction
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.TransactionType,
+			&i.TransactedOn,
+			&i.AmountCents,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

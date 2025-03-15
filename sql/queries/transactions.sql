@@ -7,3 +7,8 @@ returning id, created_at, updated_at, transaction_type, transacted_on, amount_ce
 insert into transactions(id, created_at, updated_at, transaction_type, transacted_on, amount_cents)
 values (?, datetime(), datetime(), "debit", ?, ?)
 returning id, created_at, updated_at, transaction_type, transacted_on, amount_cents;
+
+-- name: GetAllTransactions :many
+select id, created_at, updated_at, transaction_type, transacted_on, amount_cents
+from transactions
+order by transacted_on desc, created_at desc;

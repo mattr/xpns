@@ -5,6 +5,7 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -15,4 +16,5 @@ type Transaction struct {
 	TransactionType interface{}
 	TransactedOn    time.Time
 	AmountCents     int64
+	Note            sql.NullString
 }

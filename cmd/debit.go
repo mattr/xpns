@@ -25,12 +25,17 @@ Example:
 	xpns debit 17.50
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		amount, err := executeDebit(args[0])
+		note := cmd.Flag("note").Value.String()
+		amount, err := executeDebit(args[0], note)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Printf("Credited %.2f\n", amount)
+		fmt.Printf("Debited %.2f", amount)
+		if note != "" {
+			fmt.Printf(" for %s", note)
+		}
+		fmt.Println()
 	},
 }
 
@@ -46,15 +51,16 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// debitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	debitCmd.Flags().StringP("note", "n", "", "Include a note on the transaction")
 }
 
-func executeDebit(amount string) (float64, error) {
+func executeDebit(amount, note string) (float64, error) {
 	amountCents, err := getAmountCents(amount)
 	if err != nil {
 		return 0, err
 	}
 
-	amountCents, err = applyDebit(amountCents)
+	amountCents, err = applyDebit(amountCents, note)
 	if err != nil {
 		return 0, err
 	}
@@ -62,9 +68,10 @@ func executeDebit(amount string) (float64, error) {
 	return float64(amountCents) / 100, nil
 }
 
-func applyDebit(amount int64) (int64, error) {
+func applyDebit(amount int64, note string) (int64, error) {
 	err := withDbConn(func(db *sql.DB) error {
-		params := database.CreateDebitParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount}
+		noteParam := sql.NullString{String: note, Valid: true}
+		params := database.CreateDebitParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount, Note: noteParam}
 		queries := database.New(db)
 		_, err := queries.CreateDebit(context.Background(), params)
 		if err != nil {

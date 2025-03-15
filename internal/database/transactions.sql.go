@@ -7,23 +7,30 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
 const createCredit = `-- name: CreateCredit :one
-insert into transactions(id, created_at, updated_at, transaction_type, transacted_on, amount_cents)
-values (?, datetime(), datetime(), "credit", ?, ?)
-returning id, created_at, updated_at, transaction_type, transacted_on, amount_cents
+insert into transactions(id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note)
+values (?, datetime(), datetime(), "credit", ?, ?, ?)
+returning id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note
 `
 
 type CreateCreditParams struct {
 	ID           interface{}
 	TransactedOn time.Time
 	AmountCents  int64
+	Note         sql.NullString
 }
 
 func (q *Queries) CreateCredit(ctx context.Context, arg CreateCreditParams) (Transaction, error) {
-	row := q.db.QueryRowContext(ctx, createCredit, arg.ID, arg.TransactedOn, arg.AmountCents)
+	row := q.db.QueryRowContext(ctx, createCredit,
+		arg.ID,
+		arg.TransactedOn,
+		arg.AmountCents,
+		arg.Note,
+	)
 	var i Transaction
 	err := row.Scan(
 		&i.ID,
@@ -32,24 +39,31 @@ func (q *Queries) CreateCredit(ctx context.Context, arg CreateCreditParams) (Tra
 		&i.TransactionType,
 		&i.TransactedOn,
 		&i.AmountCents,
+		&i.Note,
 	)
 	return i, err
 }
 
 const createDebit = `-- name: CreateDebit :one
-insert into transactions(id, created_at, updated_at, transaction_type, transacted_on, amount_cents)
-values (?, datetime(), datetime(), "debit", ?, ?)
-returning id, created_at, updated_at, transaction_type, transacted_on, amount_cents
+insert into transactions(id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note)
+values (?, datetime(), datetime(), "debit", ?, ?, ?)
+returning id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note
 `
 
 type CreateDebitParams struct {
 	ID           interface{}
 	TransactedOn time.Time
 	AmountCents  int64
+	Note         sql.NullString
 }
 
 func (q *Queries) CreateDebit(ctx context.Context, arg CreateDebitParams) (Transaction, error) {
-	row := q.db.QueryRowContext(ctx, createDebit, arg.ID, arg.TransactedOn, arg.AmountCents)
+	row := q.db.QueryRowContext(ctx, createDebit,
+		arg.ID,
+		arg.TransactedOn,
+		arg.AmountCents,
+		arg.Note,
+	)
 	var i Transaction
 	err := row.Scan(
 		&i.ID,
@@ -58,12 +72,13 @@ func (q *Queries) CreateDebit(ctx context.Context, arg CreateDebitParams) (Trans
 		&i.TransactionType,
 		&i.TransactedOn,
 		&i.AmountCents,
+		&i.Note,
 	)
 	return i, err
 }
 
 const getAllTransactions = `-- name: GetAllTransactions :many
-select id, created_at, updated_at, transaction_type, transacted_on, amount_cents
+select id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note
 from transactions
 order by transacted_on desc, created_at desc
 `
@@ -84,6 +99,7 @@ func (q *Queries) GetAllTransactions(ctx context.Context) ([]Transaction, error)
 			&i.TransactionType,
 			&i.TransactedOn,
 			&i.AmountCents,
+			&i.Note,
 		); err != nil {
 			return nil, err
 		}

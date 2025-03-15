@@ -45,7 +45,11 @@ func executeList() {
 		for _, txn := range transactions {
 			amount := float64(txn.AmountCents) / 100
 			year, month, day := txn.TransactedOn.Date()
-			fmt.Printf("[%s] %v-%v-%v\t%s\t$%.2f\n", txn.ID, day, month, year, txn.TransactionType, amount)
+			var note string
+			if txn.Note.Valid {
+				note = txn.Note.String
+			}
+			fmt.Printf("[%s] %v-%v-%v\t%s\t$%.2f\t%s\n", txn.ID, day, month, year, txn.TransactionType, amount, note)
 		}
 		return nil
 	})

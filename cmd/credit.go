@@ -53,6 +53,7 @@ func executeCredit(amount string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	amountCents, err = applyCredit(amountCents)
 	if err != nil {
 		return 0, err
@@ -62,17 +63,19 @@ func executeCredit(amount string) (float64, error) {
 }
 
 func applyCredit(amount int64) (int64, error) {
-	db, err := sql.Open("sqlite", dbPath())
-	if err != nil {
-		return 0, err
-	}
-	defer db.Close()
+	err := withDbConn(func(db *sql.DB) error {
+		params := database.CreateCreditParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount}
+		queries := database.New(db)
+		_, err := queries.CreateCredit(context.Background(), params)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
-	params := database.CreateCreditParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount}
-	queries := database.New(db)
-	credit, err := queries.CreateCredit(context.Background(), params)
 	if err != nil {
 		return 0, err
 	}
-	return credit.AmountCents, nil
+
+	return amount, nil
 }

@@ -53,6 +53,7 @@ func executeDebit(amount string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	amountCents, err = applyDebit(amountCents)
 	if err != nil {
 		return 0, err
@@ -62,17 +63,19 @@ func executeDebit(amount string) (float64, error) {
 }
 
 func applyDebit(amount int64) (int64, error) {
-	db, err := sql.Open("sqlite", dbPath())
-	if err != nil {
-		return 0, err
-	}
-	defer db.Close()
+	err := withDbConn(func(db *sql.DB) error {
+		params := database.CreateDebitParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount}
+		queries := database.New(db)
+		_, err := queries.CreateDebit(context.Background(), params)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
-	params := database.CreateDebitParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount}
-	queries := database.New(db)
-	debit, err := queries.CreateDebit(context.Background(), params)
 	if err != nil {
 		return 0, err
 	}
-	return debit.AmountCents, nil
+
+	return amount, nil
 }

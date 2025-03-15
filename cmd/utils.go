@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"database/sql"
 	"os"
 	"strconv"
 )
@@ -22,4 +23,16 @@ func getAmountCents(s string) (int64, error) {
 		return 0, err
 	}
 	return int64(amount * 100), nil
+}
+
+func withDbConn(fn func(db *sql.DB) error) error {
+	db, err := sql.Open("sqlite", dbPath())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	if err = fn(db); err != nil {
+		return err
+	}
+	return nil
 }

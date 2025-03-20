@@ -12,3 +12,9 @@ returning id, created_at, updated_at, transaction_type, transacted_on, amount_ce
 select id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note
 from transactions
 order by transacted_on desc, created_at desc;
+
+-- name: GetTransactionsForDate :many
+select id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note
+from transactions
+where date(substr(transacted_on, 1, 10)) = date(?)
+order by transacted_on desc, created_at desc;

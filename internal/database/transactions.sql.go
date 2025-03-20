@@ -113,3 +113,41 @@ func (q *Queries) GetAllTransactions(ctx context.Context) ([]Transaction, error)
 	}
 	return items, nil
 }
+
+const getTransactionsForDate = `-- name: GetTransactionsForDate :many
+select id, created_at, updated_at, transaction_type, transacted_on, amount_cents, note
+from transactions
+where date(substr(transacted_on, 1, 10)) = date(?)
+order by transacted_on desc, created_at desc
+`
+
+func (q *Queries) GetTransactionsForDate(ctx context.Context, date interface{}) ([]Transaction, error) {
+	rows, err := q.db.QueryContext(ctx, getTransactionsForDate, date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Transaction
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.TransactionType,
+			&i.TransactedOn,
+			&i.AmountCents,
+			&i.Note,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

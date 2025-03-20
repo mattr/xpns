@@ -25,17 +25,32 @@ Example:
 	xpns credit 5
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		note := cmd.Flag("note").Value.String()
-		amount, err := executeCredit(args[0], note)
+		note, _ := cmd.Flags().GetString("note")
+		dateArg, _ := cmd.Flags().GetString("date")
+		if dateArg != "" {
+			date, err := time.Parse(time.DateOnly, dateArg)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			amount, err := executeCredit(args[0], note, date)
+			fmt.Printf("Credited %.2f on %v", amount, date.Format("2006-01-02"))
+			if note != "" {
+				fmt.Printf(" for %s", note)
+			}
+			fmt.Println()
+			return
+		}
+		amount, err := executeCredit(args[0], note, time.Now().Local())
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		fmt.Printf("Credited %.2f\n", amount)
+		fmt.Printf("Credited %.2f", amount)
 		if note != "" {
 			fmt.Printf(" for %s", note)
 		}
-		fmt.Println("")
+		fmt.Println()
 	},
 }
 
@@ -52,15 +67,16 @@ func init() {
 	// is called directly, e.g.:
 	// creditCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	creditCmd.Flags().StringP("note", "n", "", "Include a note on the transaction")
+	creditCmd.Flags().StringP("date", "d", "", "Specify the date of the transaction (default: today)")
 }
 
-func executeCredit(amount, note string) (float64, error) {
+func executeCredit(amount, note string, date time.Time) (float64, error) {
 	amountCents, err := getAmountCents(amount)
 	if err != nil {
 		return 0, err
 	}
 
-	amountCents, err = applyCredit(amountCents, note)
+	amountCents, err = applyCredit(amountCents, note, date)
 	if err != nil {
 		return 0, err
 	}
@@ -68,10 +84,10 @@ func executeCredit(amount, note string) (float64, error) {
 	return float64(amountCents) / 100, nil
 }
 
-func applyCredit(amount int64, note string) (int64, error) {
+func applyCredit(amount int64, note string, date time.Time) (int64, error) {
 	err := withDbConn(func(db *sql.DB) error {
 		noteParam := sql.NullString{String: note, Valid: true}
-		params := database.CreateCreditParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount, Note: noteParam}
+		params := database.CreateCreditParams{ID: uuid.New(), TransactedOn: date, AmountCents: amount, Note: noteParam}
 		queries := database.New(db)
 		_, err := queries.CreateCredit(context.Background(), params)
 		if err != nil {

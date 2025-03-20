@@ -25,8 +25,23 @@ Example:
 	xpns debit 17.50
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		note := cmd.Flag("note").Value.String()
-		amount, err := executeDebit(args[0], note)
+		note, _ := cmd.Flags().GetString("note")
+		dateArg, _ := cmd.Flags().GetString("date")
+		if dateArg != "" {
+			date, err := time.Parse(time.DateOnly, dateArg)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+			amount, err := executeDebit(args[0], note, date)
+			fmt.Printf("Debited %.2f on %v", amount, date.Format("2006-01-02"))
+			if note != "" {
+				fmt.Printf(" for %s", note)
+			}
+			fmt.Println()
+			return
+		}
+		amount, err := executeDebit(args[0], note, time.Now().Local())
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -52,15 +67,16 @@ func init() {
 	// is called directly, e.g.:
 	// debitCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	debitCmd.Flags().StringP("note", "n", "", "Include a note on the transaction")
+	debitCmd.Flags().StringP("date", "d", "", "Set the date of the transaction (defaults to the current date)")
 }
 
-func executeDebit(amount, note string) (float64, error) {
+func executeDebit(amount, note string, date time.Time) (float64, error) {
 	amountCents, err := getAmountCents(amount)
 	if err != nil {
 		return 0, err
 	}
 
-	amountCents, err = applyDebit(amountCents, note)
+	amountCents, err = applyDebit(amountCents, note, date)
 	if err != nil {
 		return 0, err
 	}
@@ -68,10 +84,10 @@ func executeDebit(amount, note string) (float64, error) {
 	return float64(amountCents) / 100, nil
 }
 
-func applyDebit(amount int64, note string) (int64, error) {
+func applyDebit(amount int64, note string, date time.Time) (int64, error) {
 	err := withDbConn(func(db *sql.DB) error {
 		noteParam := sql.NullString{String: note, Valid: true}
-		params := database.CreateDebitParams{ID: uuid.New(), TransactedOn: time.Now(), AmountCents: amount, Note: noteParam}
+		params := database.CreateDebitParams{ID: uuid.New(), TransactedOn: date, AmountCents: amount, Note: noteParam}
 		queries := database.New(db)
 		_, err := queries.CreateDebit(context.Background(), params)
 		if err != nil {

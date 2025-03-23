@@ -3,6 +3,13 @@
 Command-line expense tracker written in Go. Uses a SQLite database in the backend, so you might need drivers installed
 depending on your operating system.
 
+## Motivation
+
+I wanted a way to track purchases and expenses throughout the day, and reference them without having to log in to my
+banking each time. To solve this, I created `xpns`, a command line interface to add and view transactions. It's not 
+intended as a full-bodies expense tracker, more as a way to keep track of expenses at the time of purchase, and as a 
+reminder when you need to know what you did spend (or receive).
+
 ## Installation instructions
 
 ```bash

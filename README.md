@@ -76,8 +76,42 @@ Aliases: `d`, `out`, `purchase`, `expense`
 
 ## Roadmap
 
+- [ ] Add tests
 - [ ] Allow the date flag to accept a range
 - [ ] Balance command to show credits - debits (either total or for a given date)
 - [ ] Configuration via the `init` command
 - [ ] GitHub actions to build releases
 - [ ] Recurring credits and debits
+
+## 🤝 Contributing
+
+### Clone the repo
+
+```bash
+git clone https://github.com/mattr/xpns@latest
+cd xpns
+```
+
+### Build the project
+
+```bash
+go build
+```
+
+### Run the project
+
+```bash
+./xpns init
+./xpns list
+# etc
+```
+
+### Run the tests
+
+```bash
+go test ./...
+```
+
+### Submit a pull request
+
+If you'd like to contribute, please fork the repository and open a pull request to the `main` branch.

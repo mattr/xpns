@@ -17,7 +17,7 @@ import (
 // debitCmd represents the debit command
 var debitCmd = &cobra.Command{
 	Use:     "debit",
-	Aliases: []string{"d", "out", "purchase"},
+	Aliases: []string{"d", "expense", "out", "purchase"},
 	Args:    cobra.ExactArgs(1),
 	Short:   "Debits an amount from the balance",
 	Long: `debit adds a 'debit' transaction to the transactions table, indicating money going out.

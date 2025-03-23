@@ -15,8 +15,9 @@ import (
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all transactions",
+	Use:     "list",
+	Aliases: []string{"l"},
+	Short:   "List all transactions",
 	Long: `Lists all the transactions in the database, ordered by the transaction date with most recent first.
 List can accept a --date (-d) flag which lists transactions for a specific date. To avoid ambiguity, this is
 passed in the format yyyy-mm-dd`,

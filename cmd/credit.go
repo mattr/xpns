@@ -17,7 +17,7 @@ import (
 // creditCmd represents the credit command
 var creditCmd = &cobra.Command{
 	Use:     "credit [amount]",
-	Aliases: []string{"in", "payment"},
+	Aliases: []string{"c", "in", "payment"},
 	Args:    cobra.ExactArgs(1),
 	Short:   "Credit an amount to your balance",
 	Long: `credit adds a 'credit' transaction to the database, indicating money coming in.

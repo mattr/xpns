@@ -16,7 +16,7 @@ reminder when you need to know what you did spend (or receive).
 go install https://github.com/mattr/xpns
 ```
 
-## Commands
+## Usage and commands
 
 ### Init
 
@@ -32,9 +32,19 @@ xpns init
 Lists the transactions in the database. Accepts a `--date` (`-d`) flag to list transactions for a given date. Date is
 expected to be in ISO format.
 
+List all transactions:
+
+```shell
+xpns list
+```
+
+List transactions for a specific date:
+
 ```shell
 xpns list -d 2025-03-01
 ```
+
+Aliases: `l`
 
 ### Credit
 
@@ -46,7 +56,13 @@ current date if not specified).
 xpns credit 1500 -n salary
 ```
 
-Aliases: `in`, `payment`
+Specify an alternate date for the transaction:
+
+```shell
+xpns credit 1500 -n salary -d 2025-03-21
+```
+
+Aliases: `c`, `in`, `payment`
 
 ### Debit
 
@@ -56,7 +72,7 @@ Like credit, but adds a debit transaction in the database. Requires the amount a
 xpns debit 17.50 -n "burger for lunch"
 ```
 
-Aliases: `out`, `purchase`
+Aliases: `d`, `out`, `purchase`, `expense`
 
 ## Roadmap
 
